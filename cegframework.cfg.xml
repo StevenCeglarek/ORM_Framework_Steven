@@ -25,6 +25,6 @@
         <property name = "cegframework.connection.password">
             password
         </property>
-        <mapping class = "hibernate.test.dto.EmployeeEntity"/>
+        <mapping class = "com.steven.test.model.VideoGame"/>
     </session>
 </config>

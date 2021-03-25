@@ -1,6 +1,8 @@
 package com.steven.util;
 
 import java.sql.Connection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ConnectionSession implements AutoCloseable {
 
@@ -11,7 +13,6 @@ public class ConnectionSession implements AutoCloseable {
         for (int i = 0; i < ConnectionFactory.CONNECTIONS; i++) {
             Connection conn = ConnectionFactory.getInstance().getConnectionPool()[i];
             if (conn != null) {
-//                System.out.println("gathering connection id: " + i + " to give to the object");
                 activeConnection = conn;
                 ConnectionFactory.getInstance().getConnectionPool()[i] = null;
                 locationIndex = i;

@@ -1,13 +1,13 @@
 package com.steven.dao;
 
-import com.steven.annotations.Id;
-import com.steven.util.ConnectionFactory;
 import com.steven.util.ConnectionSession;
-import javafx.scene.effect.Reflection;
 import org.reflections.Reflections;
 
+import javax.persistence.Entity;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Set;
 
 public class DaoImpl implements GenericDao<Object, Integer, String> {
 
@@ -18,31 +18,7 @@ public class DaoImpl implements GenericDao<Object, Integer, String> {
     }
 
     @Override
-    public int create(Object o) {
-        return 0;
-    }
-
-    @Override
-    public int create(Integer i, String s) {
-        Reflections r = new Reflections();
-        r.getFieldsAnnotatedWith(Id.class);
-
-        String sql = "INSERT INTO video_games(id, title) " +
-                "VALUES (?, ?)";
-        try (
-                ConnectionSession conn = new ConnectionSession();
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);)
-        {
-            ps.setInt(1,i);
-            ps.setString(2, s);
-
-            int i2 = ps.executeUpdate();
-            return i2;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
+    public int save(Object o) {
         return 0;
     }
 
@@ -56,4 +32,28 @@ public class DaoImpl implements GenericDao<Object, Integer, String> {
         return 0;
     }
 
+    @Override
+    public void deleteTable(String s) {
+
+    }
+
+    @Override
+    public void deleteRowById(Object o, Integer integer) {
+
+    }
+
+    @Override
+    public ArrayList<Object> findAll(Object o) {
+        return null;
+    }
+
+    @Override
+    public void update(Object o, Integer integer, String s, Object t2) {
+
+    }
+
+    @Override
+    public Object findById(Integer integer, Object o) {
+        return null;
+    }
 }

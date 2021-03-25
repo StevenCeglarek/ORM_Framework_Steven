@@ -8,6 +8,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ConnectionFactory implements Closeable {
 
@@ -16,9 +18,15 @@ public class ConnectionFactory implements Closeable {
 
     private static ConnectionFactory instance;
 
+    final int MAX_THREADS = 4;
+    ExecutorService threadActivator = Executors.newFixedThreadPool(MAX_THREADS);
+
+    public ExecutorService getThreadActivator() {
+        return threadActivator;
+    }
+
     private ConnectionFactory(){
         for (int i = 0; i < CONNECTIONS; i++) {
-//            System.out.println("adding connection number "+i+" to the connection pool");
             connectionPool[i] = createConnection();
         }
     }
@@ -33,12 +41,11 @@ public class ConnectionFactory implements Closeable {
     private Connection createConnection() {
         Properties props = new Properties();
         try {
-            props.load(new FileReader(new File("cegframework.cfg.xml")));
-//            System.out.println("Creating a new Connection");
+            props.load(new FileReader(new File("src/main/resources/db.properties")));
             return DriverManager.getConnection(
-                    props.getProperty("cegframework.connection.url"),
-                    props.getProperty("cegframework.connection.username"),
-                    props.getProperty("cegframework.connection.password"));
+                    props.getProperty("jdbc.connection.profile.dev.url"),
+                    props.getProperty("jdbc.connection.profile.dev.username"),
+                    props.getProperty("jdbc.connection.profile.dev.password"));
         } catch (IOException | SQLException e) {
             e.printStackTrace();
             return null;
