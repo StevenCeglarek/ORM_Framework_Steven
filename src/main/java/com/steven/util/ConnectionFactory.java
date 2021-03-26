@@ -13,17 +13,10 @@ import java.util.concurrent.Executors;
 
 public class ConnectionFactory implements Closeable {
 
-    public static final int CONNECTIONS = 1;
+    public static final int CONNECTIONS = 3;
     private final Connection[] connectionPool = new Connection[CONNECTIONS];
 
     private static ConnectionFactory instance;
-
-    final int MAX_THREADS = 4;
-    ExecutorService threadActivator = Executors.newFixedThreadPool(MAX_THREADS);
-
-    public ExecutorService getThreadActivator() {
-        return threadActivator;
-    }
 
     private ConnectionFactory(){
         for (int i = 0; i < CONNECTIONS; i++) {

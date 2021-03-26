@@ -1,24 +1,18 @@
 package com.steven.util;
 
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.lang.reflect.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class EntityManager {
 
     public Map<String, ArrayList<String>> extractData(Object o) {
-        StringBuilder sb = new StringBuilder();
         Class clazz = o.getClass();
         String tableName = getTableName(o);
-
         if (!doesTableExist(tableName)) {
             createTable(o, tableName);
         }
@@ -31,7 +25,6 @@ public class EntityManager {
         results.put("Types", fieldType);
         results.put("Names", fieldNames);
         results.put("Values", fieldValues);
-
         return results;
     }
 
@@ -61,12 +54,16 @@ public class EntityManager {
         }
         sqlQuery.append(");");
         String sql = sqlQuery.toString();
-        System.out.println(sql);
         try (
-                ConnectionSession conn = new ConnectionSession();
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);) {
+//                ConnectionSession conn = new ConnectionSession();
+//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ) {
             ps.executeUpdate();
         } catch (SQLException e) {
+            Logger lgr = Logger.getLogger(EntityManager.class.getName());
+            lgr.log(Level.SEVERE, e.getMessage(), e);
             e.printStackTrace();
             return "Your INSERT was not completed";
         }
@@ -78,8 +75,10 @@ public class EntityManager {
         String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE id = ?";
 
         try (
-                ConnectionSession conn = new ConnectionSession();
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
+//                ConnectionSession conn = new ConnectionSession();
+//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
             ps.setObject(1, value);
             ps.setObject(2, id);
@@ -96,9 +95,11 @@ public class EntityManager {
         ArrayList<Object> tableData = new ArrayList<>();
         String sql = "SELECT * FROM " + tableName;
         try (
-                ConnectionSession conn = new ConnectionSession();
-
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);) {
+//                ConnectionSession conn = new ConnectionSession();
+//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ) {
             ResultSet rs = ps.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
                 Class[] parameters = new Class[rsmd.getColumnCount()];
@@ -131,8 +132,11 @@ public class EntityManager {
     public boolean deleteTableFromDb(String tableName) {
         String sql = "Drop table " + tableName;
         try (
-                ConnectionSession conn = new ConnectionSession();
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);) {
+//                ConnectionSession conn = new ConnectionSession();
+//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ) {
             ps.executeUpdate();
         } catch (SQLException e) {
             return false;
@@ -143,8 +147,11 @@ public class EntityManager {
     public boolean deleteRowByIdFromDb(String tableName, int id) {
         String sql = "Delete from  " + tableName + " where id = ?";
         try (
-                ConnectionSession conn = new ConnectionSession();
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);) {
+//                ConnectionSession conn = new ConnectionSession();
+//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ) {
             ps.setInt(1, id);
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -169,8 +176,11 @@ public class EntityManager {
         sqlQuery.append(");");
         String sql = sqlQuery.toString();
         try (
-                ConnectionSession conn = new ConnectionSession();
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);) {
+//                ConnectionSession conn = new ConnectionSession();
+//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ) {
             ps.executeUpdate();
         } catch (SQLException e) {
             return false;
@@ -180,10 +190,11 @@ public class EntityManager {
 
     public Object findByIdDb(String tableName, int id, Object o) {
         String sql = "SELECT * FROM " + tableName + " WHERE id = " + id;
-        StringBuilder results = new StringBuilder();
         try (
-                ConnectionSession conn = new ConnectionSession();
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql)
+//                ConnectionSession conn = new ConnectionSession();
+//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql)
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
             ResultSet rs = ps.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -193,8 +204,6 @@ public class EntityManager {
             while(rs.next()){
                 for(int i = 1; i <= rsmd.getColumnCount(); i++){
                     parameters[i-1] = rs.getObject(i).getClass();
-
-                    System.out.println(parameters[i-1]);
                     values.add(rs.getObject(i));
                 }
                 Constructor constructor = o.getClass().getConstructor(parameters);
@@ -220,8 +229,11 @@ public class EntityManager {
         String sql = "SELECT * from ?";
 
         try (
-                ConnectionSession conn = new ConnectionSession();
-                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);) {
+//                ConnectionSession conn = new ConnectionSession();
+//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ) {
 
             ps.setString(1, tableName);
             ps.executeUpdate();
@@ -232,17 +244,17 @@ public class EntityManager {
     }
 
 //    TODO: Try and get Relationships working
-    public String checkForRelationship(Object o) {
-        if(o.getClass().isAnnotationPresent(OneToMany.class)) {
-            boolean oneToMany = true;
-            return "none";
-        }
-        if (o.getClass().isAnnotationPresent(ManyToOne.class)) {
-            String joinColumn = o.getClass().getAnnotation(JoinColumn.class).name();
-            return joinColumn;
-        }
-        return null;
-    }
+//    public String checkForRelationship(Object o) {
+//        if(o.getClass().isAnnotationPresent(OneToMany.class)) {
+//            boolean oneToMany = true;
+//            return "none";
+//        }
+//        if (o.getClass().isAnnotationPresent(ManyToOne.class)) {
+//            String joinColumn = o.getClass().getAnnotation(JoinColumn.class).name();
+//            return joinColumn;
+//        }
+//        return null;
+//    }
 
     public ArrayList<String> consolidateQuery(ArrayList<String> names, ArrayList<String> types) {
         ArrayList<String> nameType = new ArrayList<>();
@@ -268,11 +280,15 @@ public class EntityManager {
         // TODO: Need to get this method to work with primitives as well
         ArrayList<String> fieldTypes = new ArrayList<>();
         for(Field f : fields) {
-            String fieldType = f.toString();
-            String[] splits = fieldType.split("\\.");
-            String endName = splits[2];
-            endName = endName.replaceAll("\\scom", "");
-            fieldTypes.add(endName);
+            String fieldType = f.getGenericType().getTypeName();
+            if (fieldType.equals("int") || fieldType.equals("boolean") || fieldType.equals("double") || fieldType.equals("long")
+            || fieldType.equals("char") || fieldType.equals("float") || fieldType.equals("short") || fieldType.equals("byte")) {
+                fieldTypes.add(fieldType);
+            } else {
+                String[] splits = fieldType.split("\\.");
+                String endName = splits[2];
+                fieldTypes.add(endName);
+            }
         }
         return fieldTypes;
     }
@@ -300,10 +316,10 @@ public class EntityManager {
 
     private String checkTypes(String s) {
         switch (s) {
-            case"Integer":
-            case"int": return "INTEGER";
-            case"Long":
-            case"long": return "BIGINT";
+            case"Integer": return "INTEGER";
+            case"int": return "int4";
+            case"Long": return "BIGINT";
+            case"long": return "int8";
             case"Float":
             case"float": return "REAL";
             case"Boolean":
@@ -318,23 +334,23 @@ public class EntityManager {
         }
     }
 //    TODO:This goes along with trying to get relationships working
-    private String checkObjTypes(String s) {
-        switch (s) {
-            case"Integer":
-            case"int": return "INTEGER";
-            case"Long":
-            case"long": return "BIGINT";
-            case"Float":
-            case"float": return "REAL";
-            case"Boolean":
-            case"boolean": return "BOOLEAN";
-            case"Short":
-            case"short": return "SMALLINT";
-            case"Byte":
-            case"byte": return "TINYINT";
-            case"Double":
-            case"double": return "FLOAT";
-            default: return"TEXT";
-        }
-    }
+//    private String checkObjTypes(String s) {
+//        switch (s) {
+//            case"Integer":
+//            case"int": return "INTEGER";
+//            case"Long":
+//            case"long": return "BIGINT";
+//            case"Float":
+//            case"float": return "REAL";
+//            case"Boolean":
+//            case"boolean": return "BOOLEAN";
+//            case"Short":
+//            case"short": return "SMALLINT";
+//            case"Byte":
+//            case"byte": return "TINYINT";
+//            case"Double":
+//            case"double": return "FLOAT";
+//            default: return"TEXT";
+//        }
+//    }
 }

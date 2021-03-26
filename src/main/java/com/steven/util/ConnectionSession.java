@@ -1,8 +1,6 @@
 package com.steven.util;
 
 import java.sql.Connection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ConnectionSession implements AutoCloseable {
 
@@ -21,7 +19,6 @@ public class ConnectionSession implements AutoCloseable {
         }
         throw new RuntimeException("No Active connections avaliable");
     }
-
 
     @Override
     public void close() {

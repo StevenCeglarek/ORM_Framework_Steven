@@ -1,41 +1,42 @@
 package com.steven.service;
 
 import com.steven.util.ConnectionFactory;
-import com.steven.util.ConnectionSession;
 import com.steven.util.EntityManager;
+import com.steven.util.ThreadFactory;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 public class EntityService {
 
     EntityManager em = new EntityManager();
-    ConnectionFactory util = ConnectionFactory.getInstance();
+//    ConnectionFactory util = ConnectionFactory.getInstance();
+    ThreadFactory util = new ThreadFactory();
 
     public void save(Object o) {
         Map<String, ArrayList<String>> data = em.extractData(o);
         String tableName = em.getTableName(o);
         Callable<String> call = () -> em.saveToDb(data, tableName);
-//        sess.getThreadActivator().execute();
-        util.getThreadActivator().submit(call);
-        util.getThreadActivator().shutdown();
-//        em.saveToDb(data, tableName);
+        util.getThreadExecutor().submit(call);
     }
 
 
     public void deleteTable(String tableName) {
-        em.deleteTableFromDb(tableName);
+        Callable<Boolean> call = () -> em.deleteTableFromDb(tableName);
+        util.getThreadExecutor().submit(call);
     }
 
     public void deleteRowById(Object o, int id) {
-        em.deleteRowByIdFromDb(em.getTableName(o), id);
+        Callable<Boolean> call = () -> em.deleteRowByIdFromDb(em.getTableName(o), id);
+        util.getThreadExecutor().submit(call);
     }
 
-    public ArrayList<Object> findAll(Object o) {
+    public Future<ArrayList<Object>> findAll(Object o) {
         String tableName = em.getTableName(o);
-        return em.findAllFromTable(tableName, o);
+        Callable<ArrayList<Object>> call = () -> em.findAllFromTable(tableName, o);
+        return util.getThreadExecutor().submit(call);
     }
 
     public void update(Object o, int id, String columnName, Object value) {
@@ -43,11 +44,17 @@ public class EntityService {
         Map<String, ArrayList<String>> data = em.extractData(o);
         String tableName = em.getTableName(o);
         ArrayList<String> values = data.get("Values");
-        em.updateOne(tableName, columnName, id, value);
+        Callable call = () -> em.updateOne(tableName, columnName, id, value);
+        util.getThreadExecutor().submit(call);
     }
 
-    public Object findById(int id, Object o) {
+    public Future<Object> findById(int id, Object o) {
         String tableName = em.getTableName(o);
-        return em.findByIdDb(tableName, id, o);
+        Callable<Object> call = () -> em.findByIdDb(tableName, id, o);
+        return util.getThreadExecutor().submit(call);
+    }
+
+    public void shutdownThread() {
+        util.getThreadExecutor().shutdown();
     }
 }
