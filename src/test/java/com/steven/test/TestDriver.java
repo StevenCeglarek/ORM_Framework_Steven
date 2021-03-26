@@ -28,7 +28,6 @@ public class TestDriver {
         c.setConsoleName("Nintendo 64 Mini the next one");
         c.setNumber(954305l);
         c.setPrice(99.99);
-        System.out.println(c.toString());
         Console c2 = new Console();
         c2.setConsoleName("Playstation 2");
         c2.setNumber(305954l);

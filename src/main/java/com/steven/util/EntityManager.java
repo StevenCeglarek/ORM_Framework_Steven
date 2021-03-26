@@ -55,8 +55,6 @@ public class EntityManager {
         sqlQuery.append(");");
         String sql = sqlQuery.toString();
         try (
-//                ConnectionSession conn = new ConnectionSession();
-//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
                 Connection conn = DataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
@@ -67,7 +65,6 @@ public class EntityManager {
             e.printStackTrace();
             return "Your INSERT was not completed";
         }
-        System.out.println(sql);
         return sql;
     }
 
@@ -75,8 +72,6 @@ public class EntityManager {
         String sql = "UPDATE " + tableName + " SET " + columnName + " = ? WHERE id = ?";
 
         try (
-//                ConnectionSession conn = new ConnectionSession();
-//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
                 Connection conn = DataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
@@ -95,8 +90,6 @@ public class EntityManager {
         ArrayList<Object> tableData = new ArrayList<>();
         String sql = "SELECT * FROM " + tableName;
         try (
-//                ConnectionSession conn = new ConnectionSession();
-//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
                 Connection conn = DataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
@@ -132,8 +125,6 @@ public class EntityManager {
     public boolean deleteTableFromDb(String tableName) {
         String sql = "Drop table " + tableName;
         try (
-//                ConnectionSession conn = new ConnectionSession();
-//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
                 Connection conn = DataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
@@ -147,8 +138,6 @@ public class EntityManager {
     public boolean deleteRowByIdFromDb(String tableName, int id) {
         String sql = "Delete from  " + tableName + " where id = ?";
         try (
-//                ConnectionSession conn = new ConnectionSession();
-//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
                 Connection conn = DataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
@@ -176,8 +165,6 @@ public class EntityManager {
         sqlQuery.append(");");
         String sql = sqlQuery.toString();
         try (
-//                ConnectionSession conn = new ConnectionSession();
-//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
                 Connection conn = DataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
@@ -191,8 +178,6 @@ public class EntityManager {
     public Object findByIdDb(String tableName, int id, Object o) {
         String sql = "SELECT * FROM " + tableName + " WHERE id = " + id;
         try (
-//                ConnectionSession conn = new ConnectionSession();
-//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql)
                 Connection conn = DataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ) {
@@ -227,10 +212,7 @@ public class EntityManager {
 
     public boolean doesTableExist(String tableName) {
         String sql = "SELECT * from ?";
-
         try (
-//                ConnectionSession conn = new ConnectionSession();
-//                PreparedStatement ps = conn.getActiveConnection().prepareStatement(sql);
                 Connection conn = DataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ) {

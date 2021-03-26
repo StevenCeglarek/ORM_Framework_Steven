@@ -1,9 +1,13 @@
 package com.steven.test.junit5;
 
 import com.steven.test.models.VideoGame;
+import com.steven.util.DataSource;
 import org.junit.jupiter.api.*;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -93,6 +97,57 @@ class TestClass {
                 () -> Assertions.assertEquals(values.get(1), fieldValueList.get(1)),
                 () -> Assertions.assertEquals(values.get(2), fieldValueList.get(2)),
                 () -> Assertions.assertEquals(values.get(3), fieldValueList.get(3)));
+    }
+
+    @Test
+    @DisplayName("Should build new Object from data from database")
+    void findById() {
+        int id = 1;
+        String tableName = "videoGames";
+        VideoGame vg = new VideoGame();
+        VideoGame vg1 = new VideoGame();
+        vg.setId(id);
+        vg.setTitle("Gears 6");
+        vg.setPrice(59.99);
+        vg.setYear("2021");
+        vg.setConsole("Xbox One");
+        String sql = "SELECT * FROM " + tableName + " WHERE id = " + id;
+        try (
+                Connection conn = DataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+        ) {
+            ResultSet rs = ps.executeQuery();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            Class[] parameters = new Class[rsmd.getColumnCount()];
+            List<Object> values = new ArrayList<>();
+
+            while(rs.next()){
+                for(int i = 1; i <= rsmd.getColumnCount(); i++){
+                    parameters[i-1] = rs.getObject(i).getClass();
+                    values.add(rs.getObject(i));
+                }
+                Constructor constructor = vg.getClass().getConstructor(parameters);
+                vg1 = (VideoGame) constructor.newInstance(values.toArray());
+            }
+        } catch (SQLException e) {
+            System.out.println("There was nothing in the database matching the given id");
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        VideoGame finalVg = vg1;
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(vg.getId(), finalVg.getId()),
+                () -> Assertions.assertEquals(vg.getTitle(), finalVg.getTitle()),
+                () -> Assertions.assertEquals(vg.getPrice(), finalVg.getPrice()),
+                () -> Assertions.assertEquals(vg.getYear(), finalVg.getYear()),
+                () -> Assertions.assertEquals(vg.getConsole(), finalVg.getConsole()));
     }
 
 

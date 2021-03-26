@@ -11,6 +11,7 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Deprecated
 public class ConnectionFactory implements Closeable {
 
     public static final int CONNECTIONS = 3;

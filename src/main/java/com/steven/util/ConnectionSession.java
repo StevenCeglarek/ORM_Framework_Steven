@@ -2,6 +2,7 @@ package com.steven.util;
 
 import java.sql.Connection;
 
+@Deprecated
 public class ConnectionSession implements AutoCloseable {
 
     private Connection activeConnection;
